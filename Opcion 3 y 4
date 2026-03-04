@@ -1,0 +1,274 @@
+import java.io.*;
+import_java.util.ArrayList;
+
+public class Main {
+    static class Producto {
+        int id;
+        String nombre;
+        String categoría;
+        long precio;
+        int stock;
+
+        Producto(int id, String nombre, String categoria, long precio, int stock) {
+            this.id = id;
+            this.nombre = nombre;
+            this.categoria = categoria;
+            this.precio = precio;
+            this stock = stock;
+        }
+    }
+
+static class = Cliente {
+    int id;
+    String nombre; 
+    String email;
+   
+    Cliente(int id, String nombre, String email){
+        this.id = id;
+        this.nombre = nombre;
+        this.email = email;
+    }
+
+}
+
+static class Pedido {
+    int id;
+    int ClienteId;
+    int cantidad;
+    String fecha;
+
+    Pedido(int id, int ClienteId, int cantidad, String fecha){
+        this.id = id;
+        this.ClienteId = ClienteId;
+        this.fecha = fecha;
+    }
+}
+
+static class ventaProducto {
+    int productoId;
+    String nombreProducto;
+    long total;
+
+    VentaProducto(int producto, String nombreProducto, long total) {
+        this.productoId = productoId;
+        this.nombreProducto = nombreProducto;
+        this.total = total;
+    }
+}
+//ArrayList para la lectura del csvv
+static ArrayList<Producto> leerProductos(String ruta) {
+        ArrayList<Producto> productos = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(ruta))) {
+            String linea = br.readLine(); // header
+            while ((linea = br.readLine()) != null) {
+                String[] p = linea.split(",");
+                int id = Integer.parseInt(p[0].trim());
+                String nombre = p[1].trim();
+                String categoria = p[2].trim();
+                long precio = Long.parseLong(p[3].trim());
+                int stock = Integer.parseInt(p[4].trim());
+                productos.add(new Producto(id, nombre, categoria, precio, stock));
+            }
+        } catch (IOException e) {
+            System.out.println("Error leyendo productos: " + e.getMessage());
+        }
+        return productos;
+    }
+
+    static ArrayList<Cliente> leerClientes(String ruta) {
+        ArrayList<Cliente> clientes = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(ruta))) {
+            String linea = br.readLine(); // header
+            while ((linea = br.readLine()) != null) {
+                String[] c = linea.split(",");
+                int id = Integer.parseInt(c[0].trim());
+                String nombre = c[1].trim();
+                String email = c[2].trim();
+                clientes.add(new Cliente(id, nombre, email));
+            }
+        } catch (IOException e) {
+            System.out.println("Error leyendo clientes: " + e.getMessage());
+        }
+        return clientes;
+    }
+
+        static ArrayList<Pedido> leerPedidos(String ruta) {
+        ArrayList<Pedido> pedidos = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(ruta))) {
+            String linea = br.readLine(); // header
+            while ((linea = br.readLine()) != null) {
+                String[] o = linea.split(",");
+                int id = Integer.parseInt(o[0].trim());
+                int clienteId = Integer.parseInt(o[1].trim());
+                int productoId = Integer.parseInt(o[2].trim());
+                int cantidad = Integer.parseInt(o[3].trim());
+                String fecha = o[4].trim();
+                pedidos.add(new Pedido(id, clienteId, productoId, cantidad, fecha));
+            }
+        } catch (IOException e) {
+            System.out.println("Error leyendo pedidos: " + e.getMessage());
+        }
+        return pedidos;
+    }
+ //Las utilidades
+    static Producto buscarProductoPorId(ArrayList<Producto> productos, int id) {
+        for (int i = 0; i < productos.size(); i++) {
+            if (productos.get(i).id == id) return productos.get(i);
+        }
+        return null;
+    }
+
+    static Cliente buscarClientePorId(ArrayList<Cliente> clientes, int id) {
+        for (int i = 0; i < clientes.size(); i++) {
+            if (clientes.get(i).id == id) return clientes.get(i);
+        }
+        return null;
+    }
+
+    static boolean contieneId(ArrayList<Integer> lista, int id) {
+        for (int i = 0; i < lista.size(); i++) {
+            if (lista.get(i) == id) return true;
+        }
+        return false;
+    }
+
+    //Ordenamientos
+    // Ordenar ventas por total DESC mayor a menor
+    static void ordenarVentasPorTotalDesc(ArrayList<VentaProducto> ventas) {
+        // Selection sort
+        for (int i = 0; i < ventas.size() - 1; i++) {
+            int maxIdx = i;
+            for (int j = i + 1; j < ventas.size(); j++) {
+                if (ventas.get(j).total > ventas.get(maxIdx).total) {
+                    maxIdx = j;
+                }
+            }
+            if (maxIdx != i) {
+                VentaProducto tmp = ventas.get(i);
+                ventas.set(i, ventas.get(maxIdx));
+                ventas.set(maxIdx, tmp);
+            }
+        }
+    }
+
+    // Ordenar clientes por nombre ASC (A-Z)
+    static void ordenarClientesPorNombreAsc(ArrayList<Cliente> clientes) {
+        // Selection sort (alfabético)
+        for (int i = 0; i < clientes.size() - 1; i++) {
+            int minIdx = i;
+            for (int j = i + 1; j < clientes.size(); j++) {
+                String a = clientes.get(j).nombre.toLowerCase();
+                String b = clientes.get(minIdx).nombre.toLowerCase();
+                if (a.compareTo(b) < 0) {
+                    minIdx = j;
+                }
+            }
+            if (minIdx != i) {
+                Cliente tmp = clientes.get(i);
+                clientes.set(i, clientes.get(minIdx));
+                clientes.set(minIdx, tmp);
+            }
+        }
+    }
+
+    // Opcion 3
+    static void opcion3_calcularTotalVentasPorProducto(
+            String productosCsv,
+            String pedidosCsv,
+            String totalVentasCsv
+    ) {
+        ArrayList<Producto> productos = leerProductos(productosCsv);
+        ArrayList<Pedido> pedidos = leerPedidos(pedidosCsv);
+
+        ArrayList<VentaProducto> ventas = new ArrayList<>();
+
+        // Inicializar totales en 0 por cada producto
+        for (int i = 0; i < productos.size(); i++) {
+            Producto p = productos.get(i);
+            ventas.add(new VentaProducto(p.id, p.nombre, 0));
+        }
+
+        // Acumular total = cantidad * precio
+        for (int i = 0; i < pedidos.size(); i++) {
+            Pedido ped = pedidos.get(i);
+            Producto prod = buscarProductoPorId(productos, ped.productoId);
+            if (prod == null) continue;
+
+            long subtotal = (long) ped.cantidad * prod.precio;
+
+            // sumar a su producto en la lista ventas
+            for (int k = 0; k < ventas.size(); k++) {
+                if (ventas.get(k).productoId == prod.id) {
+                    ventas.get(k).total += subtotal;
+                    break;
+                }
+            }
+        }
+
+        // Ordenar por total DESC
+        ordenarVentasPorTotalDesc(ventas);
+
+        // Mostrar en consola
+        System.out.println("\n=== Total de ventas por producto (DESC) ===");
+        for (int i = 0; i < ventas.size(); i++) {
+            VentaProducto v = ventas.get(i);
+            System.out.println(v.productoId + " | " + v.nombreProducto + " | " + v.total);
+        }
+
+        // Escribir CSV total_ventas.csv
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(totalVentasCsv))) {
+            bw.write("producto_id,nombre_producto,total");
+            bw.newLine();
+            for (int i = 0; i < ventas.size(); i++) {
+                VentaProducto v = ventas.get(i);
+                bw.write(v.productoId + "," + v.nombreProducto + "," + v.total);
+                bw.newLine();
+            }
+            System.out.println("\nArchivo escrito: " + totalVentasCsv);
+        } catch (IOException e) {
+            System.out.println("Error escribiendo total_ventas.csv: " + e.getMessage());
+        }
+    }
+
+    // Opcion 4
+    // Muestra clientes que han comprado, ordenados A-Z
+    static void opcion4_verClientesQueHanComprado(String clientesCsv, String pedidosCsv) {
+        ArrayList<Cliente> clientes = leerClientes(clientesCsv);
+        ArrayList<Pedido> pedidos = leerPedidos(pedidosCsv);
+
+        // Sacar IDs únicos de clientes que aparecen en pedidos
+        ArrayList<Integer> idsCompradores = new ArrayList<>();
+        for (int i = 0; i < pedidos.size(); i++) {
+            int cid = pedidos.get(i).clienteId;
+            if (!contieneId(idsCompradores, cid)) {
+                idsCompradores.add(cid);
+            }
+        }
+
+        // Construir lista de clientes compradores
+        ArrayList<Cliente> compradores = new ArrayList<>();
+        for (int i = 0; i < idsCompradores.size(); i++) {
+            Cliente c = buscarClientePorId(clientes, idsCompradores.get(i));
+            if (c != null) compradores.add(c);
+        }
+
+        // Ordenar por nombre ASC
+        ordenarClientesPorNombreAsc(compradores);
+
+        // Mostrar
+        System.out.println("\n=== Clientes que han realizado compras (A-Z) ===");
+        for (int i = 0; i < compradores.size(); i++) {
+            Cliente c = compradores.get(i);
+            System.out.println(c.id + " | " + c.nombre + " | " + c.email);
+        }
+
+        if (compradores.size() == 0) {
+            System.out.println("(No hay clientes con compras registradas)");
+        }
+    }
+
+   
+}
+
+
+}
